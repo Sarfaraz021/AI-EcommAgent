@@ -18,7 +18,7 @@ class RAGAssistant:
         self.load_env_variables()
         self.setup_prompt_template()
         self.relative_path = 'data'
-        self.filename = 'demmy.txt'
+        self.filename = 'dummy.txt'
         self.absolute_path = os.path.join(self.relative_path, self.filename)
         self.retriever = None
         self.initialize_retriever(self.absolute_path)
