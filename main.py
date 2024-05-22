@@ -93,7 +93,7 @@ class RAGAssistant:
 
 rag_assistant = RAGAssistant()
 
-st.set_page_config(page_title="Dany Assistant", layout="wide")
+st.set_page_config(page_title="SmartCommerceAI", layout="wide")
 
 st.title("SmartCommerceAI")
 
