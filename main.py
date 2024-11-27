@@ -9,7 +9,7 @@ from langchain.chains import RetrievalQA
 from langchain.memory import ConversationBufferMemory
 from langchain_community.document_loaders import Docx2txtLoader, UnstructuredExcelLoader, CSVLoader, TextLoader, PyPDFLoader
 from langchain_pinecone import PineconeVectorStore
-from pinecone import Pinecone
+# from pinecone import Pinecone
 from prompt import template
 
 
@@ -21,6 +21,8 @@ class RAGAssistant:
         self.filename = 'dummy.txt'
         self.absolute_path = os.path.join(self.relative_path, self.filename)
         self.retriever = None
+        self.memory = ConversationBufferMemory(
+            memory_key="history", input_key="question")
         self.initialize_retriever(self.absolute_path)
         self.llm = ChatOpenAI(model="gpt-4o", temperature=0.9)
 
@@ -43,9 +45,12 @@ class RAGAssistant:
             chunk_size=10000, chunk_overlap=200)
         docs = text_splitter.split_documents(documents)
         embeddings = OpenAIEmbeddings()
-        Pinecone(api_key=self.pinecone_api_key, environment='gcp-starter')
         vectbd = PineconeVectorStore.from_documents(
-            docs, embeddings, index_name=self.pinecone_index_name)
+            documents=docs,
+            embedding=embeddings,
+            index_name="sarfaraz",
+            namespace="wondervector5000"
+        )
         self.retriever = vectbd.as_retriever()
 
     def finetune(self, file_path):
@@ -54,7 +59,12 @@ class RAGAssistant:
         elif file_path.endswith('.txt'):
             loader = TextLoader(file_path)
         elif file_path.endswith('.csv'):
-            loader = CSVLoader(file_path=file_path)
+            try:
+                loader = CSVLoader(file_path=file_path,
+                                   encoding='utf-8')  # Specify encoding
+            except UnicodeDecodeError:
+                # Fallback encoding
+                loader = CSVLoader(file_path=file_path, encoding='latin1')
         elif file_path.endswith('.xlsx'):
             loader = UnstructuredExcelLoader(file_path, mode="elements")
         elif file_path.endswith('.docx'):
@@ -72,9 +82,12 @@ class RAGAssistant:
             chunk_size=10000, chunk_overlap=200)
         docs = text_splitter.split_documents(documents)
         embeddings = OpenAIEmbeddings()
-        Pinecone(api_key=self.pinecone_api_key, environment='gcp-starter')
         vectbd = PineconeVectorStore.from_documents(
-            docs, embeddings, index_name=self.pinecone_index_name)
+            documents=docs,
+            embedding=embeddings,
+            index_name="sarfaraz",
+            namespace="wondervector5000"
+        )
         self.retriever = vectbd.as_retriever()
 
     def chat(self, user_input):
@@ -83,11 +96,10 @@ class RAGAssistant:
             chain_type='stuff',
             retriever=self.retriever,
             chain_type_kwargs={"verbose": False, "prompt": self.prompt_template,
-                               "memory": ConversationBufferMemory(memory_key="history", input_key="question")}
+                               "memory": self.memory}
         )
         assistant_response = chain.invoke(user_input)
         response_text = assistant_response['result']
-
         return response_text
 
 
@@ -97,7 +109,13 @@ st.set_page_config(page_title="SmartCommerceAI", layout="wide")
 
 st.title("SmartCommerceAI")
 
-# Initialize session state
+# Initialize session state for memory
+if "memory" not in st.session_state:
+    st.session_state.memory = ConversationBufferMemory(
+        memory_key="history", input_key="question")
+    rag_assistant.memory = st.session_state.memory
+
+# Initialize session state for messages
 if "messages" not in st.session_state:
     st.session_state.messages = []
 
