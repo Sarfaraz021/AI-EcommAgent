@@ -44,7 +44,7 @@ class RAGAssistant:
         text_splitter = RecursiveCharacterTextSplitter(
             chunk_size=10000, chunk_overlap=200)
         docs = text_splitter.split_documents(documents)
-        embeddings = OpenAIEmbeddings()
+        embeddings = OpenAIEmbeddings(model="text-embedding-ada-002")
         vectbd = PineconeVectorStore.from_documents(
             documents=docs,
             embedding=embeddings,
@@ -81,7 +81,7 @@ class RAGAssistant:
         text_splitter = RecursiveCharacterTextSplitter(
             chunk_size=10000, chunk_overlap=200)
         docs = text_splitter.split_documents(documents)
-        embeddings = OpenAIEmbeddings()
+        embeddings = OpenAIEmbeddings(model="text-embedding-ada-002")
         vectbd = PineconeVectorStore.from_documents(
             documents=docs,
             embedding=embeddings,
@@ -105,9 +105,9 @@ class RAGAssistant:
 
 rag_assistant = RAGAssistant()
 
-st.set_page_config(page_title="SmartCommerceAI", layout="wide")
+st.set_page_config(page_title="AI Ecommerce", layout="wide")
 
-st.title("SmartCommerceAI")
+st.title("AI Ecommerce Chatbot")
 
 # Initialize session state for memory
 if "memory" not in st.session_state:
